@@ -1,0 +1,28 @@
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node
+node_modules/
+dist/
+.env
+.env.*
+
+# Java / Maven
+target/
+*.jar
+*.war
+*.class
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
