@@ -1,7 +1,5 @@
 import time
 import os
-import re
-import json
 import requests
 import threading
 from watchdog.observers import Observer
@@ -19,11 +17,6 @@ batch_queue = []
 queue_lock = threading.Lock()
 
 def parse_log_line(line, filename):
-    """
-    Very basic log parser. 
-    Assumes standard format: [LEVEL] [TIMESTAMP] - MESSAGE or similar.
-    Fallback to INFO if parsing fails.
-    """
     level = "INFO"
     if "ERROR" in line.upper() or "Exception" in line:
         level = "ERROR"
@@ -53,9 +46,13 @@ def flush_batch():
             print(f"Successfully shipped {len(to_send)} logs.")
         else:
             print(f"Failed to ship logs. Status: {response.status_code}")
+            # Re-queue on failure
+            with queue_lock:
+                batch_queue = to_send + batch_queue
     except Exception as e:
         print(f"Error shipping logs: {e}")
-        # Could re-queue here if we wanted robust retry
+        with queue_lock:
+            batch_queue = to_send + batch_queue
 
 def batch_worker():
     while True:
@@ -69,16 +66,13 @@ class LogFileHandler(FileSystemEventHandler):
             
         filepath = event.src_path
         
-        # Initialize pointer if first time seeing this file
-        if filepath not in file_pointers:
-            try:
-                # Seek to end so we only tail new lines
-                size = os.path.getsize(filepath)
-                file_pointers[filepath] = size
-            except OSError:
-                return
-
         try:
+            size = os.path.getsize(filepath)
+            
+            # Handle new files or log rotation (file shrank)
+            if filepath not in file_pointers or size < file_pointers[filepath]:
+                file_pointers[filepath] = 0 if filepath in file_pointers else size
+                
             with open(filepath, 'r') as f:
                 f.seek(file_pointers[filepath])
                 lines = f.readlines()
@@ -86,12 +80,15 @@ class LogFileHandler(FileSystemEventHandler):
                 
                 if lines:
                     new_logs = [parse_log_line(l, filepath) for l in lines if l.strip()]
+                    should_flush = False
                     with queue_lock:
                         batch_queue.extend(new_logs)
                         if len(batch_queue) >= BATCH_SIZE:
-                            # Trigger early flush in background
-                            threading.Thread(target=flush_batch).start()
+                            should_flush = True
                             
+                    if should_flush:
+                        threading.Thread(target=flush_batch).start()
+                        
         except Exception as e:
             print(f"Error reading file {filepath}: {e}")
 

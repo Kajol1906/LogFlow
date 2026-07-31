@@ -1,6 +1,5 @@
 package com.logflow.backend.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -14,14 +13,17 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class GroqAiService {
 
     @Value("${groq.api.key:}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public GroqAiService() {
+        this.restTemplate = new RestTemplate();
+    }
 
     public String generateRootCauseHypothesis(List<String> errorMessages) {
         if (apiKey == null || apiKey.isEmpty()) {

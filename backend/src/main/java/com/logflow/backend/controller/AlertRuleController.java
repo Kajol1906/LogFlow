@@ -2,6 +2,7 @@ package com.logflow.backend.controller;
 
 import com.logflow.backend.model.AlertRule;
 import com.logflow.backend.repository.AlertRuleRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class AlertRuleController {
     }
 
     @PostMapping
-    public AlertRule createRule(@RequestBody AlertRule rule) {
+    public AlertRule createRule(@Valid @RequestBody AlertRule rule) {
         return alertRuleRepository.save(rule);
     }
 

@@ -16,7 +16,6 @@ function App() {
   useEffect(() => {
     fetchLogs();
 
-    const socketUrl = API_URL.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/alerts';
     const socket = new SockJS(API_URL + '/ws/alerts');
     const client = new Client({
       webSocketFactory: () => socket,
@@ -50,8 +49,8 @@ function App() {
   };
 
   const filteredLogs = logs.filter(log => 
-    log.message.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    log.serviceName.toLowerCase().includes(searchTerm.toLowerCase())
+    (log.message?.toLowerCase().includes(searchTerm.toLowerCase())) || 
+    (log.serviceName?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const chartData = useMemo(() => {

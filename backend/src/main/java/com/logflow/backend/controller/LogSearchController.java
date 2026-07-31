@@ -1,13 +1,16 @@
 package com.logflow.backend.controller;
 
 import com.logflow.backend.model.LogEntry;
-import com.logflow.backend.repository.LogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +26,7 @@ import java.util.Map;
 @Slf4j
 public class LogSearchController {
 
-    private final LogRepository logRepository;
+    private final MongoTemplate mongoTemplate;
 
     @GetMapping
     public ResponseEntity<?> search(
@@ -35,7 +38,27 @@ public class LogSearchController {
     ) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
-            Page<LogEntry> result = logRepository.findAll(pageable);
+            Query mongoQuery = new Query().with(pageable);
+
+            if (query != null && !query.isBlank()) {
+                // simple search across message or traceId
+                Criteria searchCriteria = new Criteria().orOperator(
+                        Criteria.where("message").regex(query, "i"),
+                        Criteria.where("traceId").is(query)
+                );
+                mongoQuery.addCriteria(searchCriteria);
+            }
+            if (level != null && !level.isBlank()) {
+                mongoQuery.addCriteria(Criteria.where("level").is(level.toUpperCase()));
+            }
+            if (service != null && !service.isBlank()) {
+                mongoQuery.addCriteria(Criteria.where("serviceName").is(service));
+            }
+
+            long count = mongoTemplate.count(Query.of(mongoQuery).limit(-1).skip(-1), LogEntry.class);
+            List<LogEntry> logs = mongoTemplate.find(mongoQuery, LogEntry.class);
+            Page<LogEntry> result = new PageImpl<>(logs, pageable, count);
+            
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             log.error("Failed to search logs: {}", e.getMessage());

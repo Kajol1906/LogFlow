@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
@@ -22,6 +25,7 @@ public class LogConsumer {
     private final LogRepository logRepository;
     private final AlertEngine alertEngine;
     private final KafkaProducerService kafkaProducerService;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     @KafkaListener(
         topics = {"logs.error", "logs.warn", "logs.info"},
@@ -47,18 +51,16 @@ public class LogConsumer {
     @KafkaListener(topics = "logs.dlq", groupId = "dlq-retry")
     public void retryFromDlq(ConsumerRecord<String, LogEntryRequest> record) {
         LogEntryRequest request = record.value();
-        // exponential backoff retry logic
         int retryCount = request.getRetryCount();
         if (retryCount < 3) {
-            try {
-                Thread.sleep((long) Math.pow(2, retryCount) * 1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            long delay = (long) Math.pow(2, retryCount); // seconds
             request.setRetryCount(retryCount + 1);
             String originalTopic = "logs." + (request.getLevel() != null ? request.getLevel().toLowerCase() : "info");
-            kafkaProducerService.sendLogEvent(originalTopic, record.key(), request);
-            log.info("Retrying log event for service: {}, attempt: {}", request.getServiceName(), request.getRetryCount());
+            
+            scheduler.schedule(() -> {
+                kafkaProducerService.sendLogEvent(originalTopic, record.key(), request);
+                log.info("Retrying log event for service: {}, attempt: {}", request.getServiceName(), request.getRetryCount());
+            }, delay, TimeUnit.SECONDS);
         } else {
             // Log permanent failure, alert ops team
             log.error("Permanent failure processing log for service: {}", request.getServiceName());
