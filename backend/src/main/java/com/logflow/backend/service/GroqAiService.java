@@ -40,7 +40,7 @@ public class GroqAiService {
             String prompt = "You are a DevOps assistant. Analyze these log errors and provide a brief (1-2 sentences) plain-English root cause hypothesis:\n" + String.join("\n", errorMessages);
 
             Map<String, Object> body = new HashMap<>();
-            body.put("model", "llama3-8b-8192");
+            body.put("model", "llama-3.1-8b-instant");
             body.put("messages", List.of(Map.of("role", "user", "content", prompt)));
             body.put("max_tokens", 150);
 
