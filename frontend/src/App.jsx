@@ -4,7 +4,6 @@ import SockJS from 'sockjs-client';
 import axios from 'axios';
 import { Activity, AlertTriangle, Cpu, TerminalSquare, Search, Filter, Server, ShieldAlert, BarChart2, X, Plus, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 
 function App() {
   const [logs, setLogs] = useState([]);
@@ -131,160 +130,152 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content with Resizable Panels */}
-      <div className="flex-1 p-4 overflow-hidden h-[calc(100vh-61px)]">
-        <PanelGroup direction="horizontal" className="h-full w-full">
+      {/* Main Content with Adjustable Blocks */}
+      <div className="flex-1 p-6 flex gap-6 overflow-hidden h-[calc(100vh-61px)]">
+        
+        {/* Left Column: Analytics & Alerts */}
+        <div 
+          style={{ resize: 'horizontal', overflow: 'hidden', width: '350px', minWidth: '250px', maxWidth: '50vw' }}
+          className="flex flex-col space-y-6 pr-4 custom-scrollbar shrink-0"
+        >
           
-          {/* Left Column: Analytics & Alerts */}
-          <Panel defaultSize={25} minSize={20} maxSize={50}>
-            <PanelGroup direction="vertical">
-              
-              {/* Chart Widget */}
-              <Panel defaultSize={40} minSize={20} className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
-                <h2 className="text-sm font-semibold text-zinc-100 flex items-center mb-4 uppercase tracking-wider shrink-0">
-                  <BarChart2 className="w-4 h-4 mr-2 text-zinc-400"/> Log Severity Distribution
-                </h2>
-                <div className="flex-1 w-full min-h-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                      <XAxis dataKey="name" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip cursor={{fill: '#27272a'}} contentStyle={{backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px'}} />
-                      <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </Panel>
-
-              {/* Vertical Horizontal Divider */}
-              <PanelResizeHandle className="h-4 flex items-center justify-center cursor-row-resize group">
-                 <div className="w-8 h-1 bg-zinc-800 rounded-full group-hover:bg-blue-500 transition-colors" />
-              </PanelResizeHandle>
-
-              {/* AI Alerts Widget */}
-              <Panel minSize={30} className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
-                <h2 className="text-sm font-semibold text-zinc-100 flex items-center mb-4 uppercase tracking-wider shrink-0">
-                  <AlertTriangle className="w-4 h-4 mr-2 text-red-500"/> Real-Time Analysis
-                </h2>
-                <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2 min-h-0">
-                  {alerts.length === 0 ? (
-                    <div className="text-center py-10 text-zinc-500 flex flex-col items-center">
-                      <ShieldAlert className="w-8 h-8 mb-2 opacity-20" />
-                      <p className="text-sm">No active alerts</p>
-                    </div>
-                  ) : (
-                    alerts.map((alert, i) => (
-                      <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 relative shadow-sm">
-                        <div className={`absolute top-0 left-0 w-1 h-full rounded-l-lg ${alert.level === 'CRITICAL' || alert.ruleName.includes('Error') ? 'bg-red-500' : 'bg-amber-500'}`}></div>
-                        <div className="ml-2">
-                          <div className="flex justify-between items-start mb-1">
-                            <h3 className="font-medium text-zinc-200">{alert.ruleName}</h3>
-                            <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">{alert.serviceName}</span>
-                          </div>
-                          <p className="text-xs text-zinc-400 mb-3">{alert.message}</p>
-                          
-                          {alert.aiHypothesis && (
-                            <div className="bg-blue-900/10 border border-blue-900/50 rounded-md p-3">
-                              <div className="flex items-center space-x-1.5 mb-1.5">
-                                <Cpu className="w-3.5 h-3.5 text-blue-400" />
-                                <span className="text-xs font-semibold text-blue-400">AI Root Cause Analysis</span>
-                              </div>
-                              <p className="text-xs text-blue-100/80 leading-relaxed">{alert.aiHypothesis}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </Panel>
-            </PanelGroup>
-          </Panel>
-
-          {/* Horizontal Divider */}
-          <PanelResizeHandle className="w-4 flex items-center justify-center cursor-col-resize px-1 group">
-             <div className="h-8 w-1 bg-zinc-800 rounded-full group-hover:bg-blue-500 transition-colors" />
-          </PanelResizeHandle>
-
-          {/* Right Column: Log Explorer */}
-          <Panel minSize={40} className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm overflow-hidden">
-            {/* Toolbar */}
-            <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50 shrink-0">
-              <div className="flex items-center space-x-3 w-1/2">
-                <div className="relative w-full max-w-md">
-                  <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                  <input 
-                    type="text" 
-                    placeholder="Search logs by message, trace_id, or service..." 
-                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-sm rounded-md pl-9 pr-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <button className="p-2 border border-zinc-800 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors focus:outline-none">
-                  <Filter className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-xs text-zinc-500">{filteredLogs.length} events found</span>
-                <button onClick={fetchLogs} className="text-xs bg-zinc-100 text-zinc-900 hover:bg-white font-medium px-4 py-2 rounded-md shadow-sm transition-colors focus:outline-none">
-                  Refresh Stream
-                </button>
-              </div>
+          {/* Chart Widget */}
+          <div 
+            style={{ resize: 'vertical', overflow: 'hidden', height: '280px', minHeight: '150px' }}
+            className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm shrink-0"
+          >
+            <h2 className="text-sm font-semibold text-zinc-100 flex items-center mb-4 uppercase tracking-wider shrink-0">
+              <BarChart2 className="w-4 h-4 mr-2 text-zinc-400"/> Log Severity Distribution
+            </h2>
+            <div className="flex-1 w-full min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="name" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{fill: '#27272a'}} contentStyle={{backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px'}} />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
+          </div>
 
-            {/* Log Table */}
-            <div className="flex-1 overflow-auto custom-scrollbar relative min-h-0">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-zinc-950/50 text-xs uppercase text-zinc-500 sticky top-0 backdrop-blur-md z-10">
+          {/* AI Alerts Widget */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm flex-1 flex flex-col min-h-0">
+            <h2 className="text-sm font-semibold text-zinc-100 flex items-center mb-4 uppercase tracking-wider shrink-0">
+              <AlertTriangle className="w-4 h-4 mr-2 text-red-500"/> Real-Time Analysis
+            </h2>
+            <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2 min-h-0">
+              {alerts.length === 0 ? (
+                <div className="text-center py-10 text-zinc-500 flex flex-col items-center">
+                  <ShieldAlert className="w-8 h-8 mb-2 opacity-20" />
+                  <p className="text-sm">No active alerts</p>
+                </div>
+              ) : (
+                alerts.map((alert, i) => (
+                  <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 relative shadow-sm">
+                    <div className={`absolute top-0 left-0 w-1 h-full rounded-l-lg ${alert.level === 'CRITICAL' || alert.ruleName.includes('Error') ? 'bg-red-500' : 'bg-amber-500'}`}></div>
+                    <div className="ml-2">
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-medium text-zinc-200">{alert.ruleName}</h3>
+                        <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">{alert.serviceName}</span>
+                      </div>
+                      <p className="text-xs text-zinc-400 mb-3">{alert.message}</p>
+                      
+                      {alert.aiHypothesis && (
+                        <div className="bg-blue-900/10 border border-blue-900/50 rounded-md p-3">
+                          <div className="flex items-center space-x-1.5 mb-1.5">
+                            <Cpu className="w-3.5 h-3.5 text-blue-400" />
+                            <span className="text-xs font-semibold text-blue-400">AI Root Cause Analysis</span>
+                          </div>
+                          <p className="text-xs text-blue-100/80 leading-relaxed">{alert.aiHypothesis}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Log Explorer */}
+        <div className="flex-1 flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm overflow-hidden min-w-0">
+          {/* Toolbar */}
+          <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50 shrink-0">
+            <div className="flex items-center space-x-3 w-1/2">
+              <div className="relative w-full max-w-md">
+                <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                <input 
+                  type="text" 
+                  placeholder="Search logs by message, trace_id, or service..." 
+                  className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-sm rounded-md pl-9 pr-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <button className="p-2 border border-zinc-800 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors focus:outline-none">
+                <Filter className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-xs text-zinc-500">{filteredLogs.length} events found</span>
+              <button onClick={fetchLogs} className="text-xs bg-zinc-100 text-zinc-900 hover:bg-white font-medium px-4 py-2 rounded-md shadow-sm transition-colors focus:outline-none">
+                Refresh Stream
+              </button>
+            </div>
+          </div>
+
+          {/* Log Table */}
+          <div className="flex-1 overflow-auto custom-scrollbar relative min-h-0">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-zinc-950/50 text-xs uppercase text-zinc-500 sticky top-0 backdrop-blur-md z-10">
+                <tr>
+                  <th className="px-4 py-3 font-medium border-b border-zinc-800 w-40">Timestamp</th>
+                  <th className="px-4 py-3 font-medium border-b border-zinc-800 w-24">Level</th>
+                  <th className="px-4 py-3 font-medium border-b border-zinc-800 w-48">Service</th>
+                  <th className="px-4 py-3 font-medium border-b border-zinc-800">Message</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm font-mono divide-y divide-zinc-800/50">
+                {filteredLogs.length === 0 ? (
                   <tr>
-                    <th className="px-4 py-3 font-medium border-b border-zinc-800 w-40">Timestamp</th>
-                    <th className="px-4 py-3 font-medium border-b border-zinc-800 w-24">Level</th>
-                    <th className="px-4 py-3 font-medium border-b border-zinc-800 w-48">Service</th>
-                    <th className="px-4 py-3 font-medium border-b border-zinc-800">Message</th>
+                    <td colSpan="4" className="px-4 py-8 text-center text-zinc-500 font-sans">
+                      No logs match your query.
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="text-sm font-mono divide-y divide-zinc-800/50">
-                  {filteredLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="px-4 py-8 text-center text-zinc-500 font-sans">
-                        No logs match your query.
+                ) : (
+                  filteredLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-zinc-800/30 transition-colors group">
+                      <td className="px-4 py-2.5 text-zinc-500 text-xs whitespace-nowrap">
+                        {new Date(log.timestamp).toISOString().replace('T', ' ').substring(0, 23)}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${
+                          log.level === 'ERROR' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 
+                          log.level === 'WARN' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 
+                          'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        }`}>
+                          {log.level}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-zinc-400 text-xs">
+                        {log.serviceName}
+                      </td>
+                      <td className="px-4 py-2.5 text-zinc-300 group-hover:text-zinc-100 transition-colors">
+                        {log.message}
                       </td>
                     </tr>
-                  ) : (
-                    filteredLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-zinc-800/30 transition-colors group">
-                        <td className="px-4 py-2.5 text-zinc-500 text-xs whitespace-nowrap">
-                          {new Date(log.timestamp).toISOString().replace('T', ' ').substring(0, 23)}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${
-                            log.level === 'ERROR' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 
-                            log.level === 'WARN' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 
-                            'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                          }`}>
-                            {log.level}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5 text-zinc-400 text-xs">
-                          {log.serviceName}
-                        </td>
-                        <td className="px-4 py-2.5 text-zinc-300 group-hover:text-zinc-100 transition-colors">
-                          {log.message}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Panel>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-        </PanelGroup>
       </div>
 
       {/* Services Modal */}
