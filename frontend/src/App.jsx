@@ -280,7 +280,7 @@ function App() {
 
       {/* Services Modal */}
       {isServicesOpen && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
             <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/50">
               <h2 className="text-lg font-semibold text-zinc-100 flex items-center"><Server className="w-5 h-5 mr-2 text-blue-500"/> Active Services</h2>
@@ -306,7 +306,7 @@ function App() {
 
       {/* Monitors Modal */}
       {isMonitorsOpen && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/50 shrink-0">
               <h2 className="text-lg font-semibold text-zinc-100 flex items-center"><ShieldAlert className="w-5 h-5 mr-2 text-red-500"/> Alert Monitors</h2>
