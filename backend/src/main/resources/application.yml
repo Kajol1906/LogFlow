@@ -10,6 +10,8 @@ spring:
       security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
       sasl.mechanism: ${KAFKA_SASL_MECHANISM:}
       sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
+      ssl.engine.factory.class: com.logflow.backend.config.TrustAllSslEngineFactory
+      ssl.endpoint.identification.algorithm: ""
     consumer:
       group-id: log-persister
       auto-offset-reset: earliest

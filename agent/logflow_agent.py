@@ -43,17 +43,17 @@ def flush_batch():
     try:
         response = requests.post(INGEST_URL, json=to_send, timeout=5)
         if response.status_code == 200 or response.status_code == 202:
-            print(f"Successfully shipped {len(to_send)} logs.")
+            print(f"Successfully shipped {len(to_send)} logs.", flush=True)
         else:
-            print(f"Failed to ship logs. Status: {response.status_code}")
+            print(f"Failed to ship logs. Status: {response.status_code}", flush=True)
             # Re-queue on failure
             with queue_lock:
                 batch_queue = to_send + batch_queue
     except Exception as e:
-        print(f"Error shipping logs: {e}")
+        print(f"Error shipping logs: {e}", flush=True)
         with queue_lock:
             batch_queue = to_send + batch_queue
-
+                
 def batch_worker():
     while True:
         time.sleep(FLUSH_INTERVAL)
@@ -90,15 +90,15 @@ class LogFileHandler(FileSystemEventHandler):
                         threading.Thread(target=flush_batch).start()
                         
         except Exception as e:
-            print(f"Error reading file {filepath}: {e}")
+            print(f"Error reading file {filepath}: {e}", flush=True)
 
 if __name__ == "__main__":
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
         
-    print(f"Starting LogFlow Agent...")
-    print(f"Tailing directory: {LOG_DIR}")
-    print(f"Shipping to: {INGEST_URL}")
+    print(f"Starting LogFlow Agent...", flush=True)
+    print(f"Tailing directory: {LOG_DIR}", flush=True)
+    print(f"Shipping to: {INGEST_URL}", flush=True)
     
     # Start background flusher
     flusher_thread = threading.Thread(target=batch_worker, daemon=True)
