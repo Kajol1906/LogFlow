@@ -44,6 +44,8 @@ function App() {
   const [alerts, setAlerts] = useState([]);
   const [stompClient, setStompClient] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState('ALL');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [openAccordions, setOpenAccordions] = useState({
     chart: true,
@@ -143,8 +145,9 @@ function App() {
 
   /* ─── Computed Data ─── */
   const filteredLogs = logs.filter(log =>
-    (log.message?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (log.serviceName?.toLowerCase().includes(searchTerm.toLowerCase()))
+    (levelFilter === 'ALL' || log.level === levelFilter) &&
+    ((log.message?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (log.serviceName?.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
   const chartData = useMemo(() => {
@@ -468,9 +471,30 @@ function App() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <button className="p-2 border border-zinc-800 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors focus:outline-none">
-                <Filter className="w-4 h-4" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  className={`p-2 border rounded-md transition-colors focus:outline-none ${isFilterOpen || levelFilter !== 'ALL' ? 'bg-zinc-800 border-zinc-700 text-zinc-200' : 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'}`}
+                >
+                  <Filter className="w-4 h-4" />
+                </button>
+                
+                {isFilterOpen && (
+                  <div className="absolute top-full mt-2 left-0 w-36 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl z-50 overflow-hidden">
+                    <div className="p-1.5 space-y-0.5">
+                      {['ALL', 'ERROR', 'WARN', 'INFO'].map(lvl => (
+                        <button
+                          key={lvl}
+                          onClick={() => { setLevelFilter(lvl); setIsFilterOpen(false); }}
+                          className={`w-full text-left px-3 py-1.5 text-xs rounded-md transition-colors ${levelFilter === lvl ? 'bg-blue-600/10 text-blue-400' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                        >
+                          {lvl === 'ALL' ? 'All Levels' : lvl}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               <span className="text-xs text-zinc-500">
