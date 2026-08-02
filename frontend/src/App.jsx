@@ -287,7 +287,22 @@ function App() {
                 <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <XAxis dataKey="name" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{ fill: '#27272a' }} contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }} />
+                  <Tooltip
+                    cursor={{ fill: '#27272a' }}
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const { name, count, color } = payload[0].payload;
+                      return (
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 shadow-xl">
+                          <div className="flex items-center space-x-2">
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                            <span className="text-xs font-semibold text-zinc-200">{name}</span>
+                            <span className="text-xs font-bold text-zinc-100">{count}</span>
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
